@@ -16,8 +16,19 @@ const Content = ({ parts }) => {
       <Part part={parts[0]} />
       <Part part={parts[1]} />
       <Part part={parts[2]} />
+      <Part part={parts[3]} />
     </div>
   )
+}
+
+const Total = ({ parts }) => {
+  const total =
+    parts[0].exercises +
+    parts[1].exercises +
+    parts[2].exercises +
+    parts[3].exercises
+
+  return <p><b>total of {total} exercises</b></p>
 }
 
 const Course = ({ course }) => {
@@ -25,14 +36,15 @@ const Course = ({ course }) => {
     <div>
       <Header course={course} />
       <Content parts={course.parts} />
+      <Total parts={course.parts} />
     </div>
   )
 }
 
-const App = () => {
+function App() {
   const course = {
     id: 1,
-    name: 'Half Stack application development with React',
+    name: 'Half Stack application development',
     parts: [
       {
         name: 'Fundamentals of React',
@@ -48,6 +60,11 @@ const App = () => {
         name: 'State of a component',
         exercises: 14,
         id: 3
+      },
+      {
+        name: 'Redux',
+        exercises: 11,
+        id: 4
       }
     ]
   }
