@@ -1,58 +1,43 @@
-import Course from './Course'
 
-function App() {
-  const courses = [
-    {
-      name: 'Half Stack application development',
-      id: 1,
-      parts: [
-        {
-          name: 'Fundamentals of React',
-          exercises: 10,
-          id: 1
-        },
-        {
-          name: 'Using props to pass data',
-          exercises: 7,
-          id: 2
-        },
-        {
-          name: 'State of a component',
-          exercises: 14,
-          id: 3
-        },
-        {
-          name: 'Redux',
-          exercises: 11,
-          id: 4
-        }
-      ]
-    },
-    {
-      name: 'Node.js',
-      id: 2,
-      parts: [
-        {
-          name: 'Routing',
-          exercises: 3,
-          id: 1
-        },
-        {
-          name: 'Middlewares',
-          exercises: 7,
-          id: 2
-        }
-      ]
-    }
-  ]
+import { useState } from 'react'
+
+const App = () => {
+  const [persons, setPersons] = useState([
+    { name: 'Arto Hellas' },
+    { name: 'Ada Lovelace' }
+  ])
+
+  const [newName, setNewName] = useState('')
+
+  const handleNameChange = (event) => {
+    setNewName(event.target.value)
+  }
 
   return (
     <div>
-      <h1>Web development curriculum</h1>
+      <h2>Phonebook</h2>
 
-      {courses.map(course => (
-        <Course key={course.id} course={course} />
-      ))}
+      <form>
+        <div>
+          name:
+          <input
+            value={newName}
+            onChange={handleNameChange}
+          />
+        </div>
+
+        <div>
+          <button type="submit">add</button>
+        </div>
+      </form>
+
+      <div>debug: {newName}</div>
+
+      <h2>Numbers</h2>
+
+      {persons.map(person =>
+        <p key={person.name}>{person.name}</p>
+      )}
     </div>
   )
 }
