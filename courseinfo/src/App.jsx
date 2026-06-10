@@ -1,244 +1,87 @@
 import { useState, useEffect } from 'react'
-import personService from './services/persons'
-
-const Notification = ({ message, isError }) => {
-  if (message === null) {
-    return null
-  }
-
-  return (
-    <div
-      style={{
-        color: isError ? 'red' : 'green',
-        border: `2px solid ${isError ? 'red' : 'green'}`,
-        padding: '10px',
-        marginBottom: '10px'
-      }}
-    >
-      {message}
-    </div>
-  )
-}
-
-const Filter = ({ filter, handleFilterChange }) => {
-  return (
-    <div>
-      filter shown with
-      <input
-        value={filter}
-        onChange={handleFilterChange}
-      />
-    </div>
-  )
-}
-
-const PersonForm = ({
-  addPerson,
-  newName,
-  handleNameChange,
-  newNumber,
-  handleNumberChange
-}) => {
-  return (
-    <form onSubmit={addPerson}>
-      <div>
-        name:
-        <input
-          value={newName}
-          onChange={handleNameChange}
-        />
-      </div>
-
-      <div>
-        number:
-        <input
-          value={newNumber}
-          onChange={handleNumberChange}
-        />
-      </div>
-
-      <div>
-        <button type="submit">add</button>
-      </div>
-    </form>
-  )
-}
-
-const Persons = ({ persons, deletePerson }) => {
-  return (
-    <>
-      {persons.map(person => (
-        <p key={person.id}>
-          {person.name} {person.number}{' '}
-          <button
-            onClick={() =>
-              deletePerson(person.id, person.name)
-            }
-          >
-            delete
-          </button>
-        </p>
-      ))}
-    </>
-  )
-}
+import countryService from './services/countries'
 
 const App = () => {
-  const [persons, setPersons] = useState([])
-  const [newName, setNewName] = useState('')
-  const [newNumber, setNewNumber] = useState('')
-  const [filter, setFilter] = useState('')
-  const [message, setMessage] = useState(null)
-  const [isError, setIsError] = useState(false)
+  const [countries, setCountries] = useState([])
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
-    personService
+    countryService
       .getAll()
       .then(response => {
-        setPersons(response.data)
+        setCountries(response.data)
       })
   }, [])
 
-  const addPerson = (event) => {
-    event.preventDefault()
-
-    const existingPerson = persons.find(
-      person => person.name === newName
-    )
-
-    if (existingPerson) {
-      const confirmReplace = window.confirm(
-        `${newName} is already added to phonebook, replace the old number with a new one?`
-      )
-
-      if (confirmReplace) {
-        const changedPerson = {
-          ...existingPerson,
-          number: newNumber
-        }
-
-        personService
-          .update(existingPerson.id, changedPerson)
-          .then(response => {
-            setPersons(
-              persons.map(person =>
-                person.id !== existingPerson.id
-                  ? person
-                  : response.data
-              )
-            )
-
-            setIsError(false)
-            setMessage(`Updated ${response.data.name}`)
-
-            setTimeout(() => {
-              setMessage(null)
-            }, 5000)
-
-            setNewName('')
-            setNewNumber('')
-          })
-          .catch(() => {
-            setIsError(true)
-            setMessage(
-              `Information of ${existingPerson.name} has already been removed from server`
-            )
-
-            setTimeout(() => {
-              setMessage(null)
-            }, 5000)
-
-            setPersons(
-              persons.filter(
-                person => person.id !== existingPerson.id
-              )
-            )
-          })
-      }
-
-      return
-    }
-
-    const personObject = {
-      name: newName,
-      number: newNumber
-    }
-
-    personService
-      .create(personObject)
-      .then(response => {
-        setPersons(persons.concat(response.data))
-
-        setIsError(false)
-        setMessage(`Added ${response.data.name}`)
-
-        setTimeout(() => {
-          setMessage(null)
-        }, 5000)
-
-        setNewName('')
-        setNewNumber('')
-      })
+  const handleSearchChange = (event) => {
+    setSearch(event.target.value)
   }
 
-  const deletePerson = (id, name) => {
-    if (window.confirm(`Delete ${name}?`)) {
-      personService
-        .remove(id)
-        .then(() => {
-          setPersons(
-            persons.filter(person => person.id !== id)
-          )
-        })
-    }
-  }
-
-  const handleNameChange = (event) => {
-    setNewName(event.target.value)
-  }
-
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value)
-  }
-
-  const handleFilterChange = (event) => {
-    setFilter(event.target.value)
-  }
-
-  const personsToShow = persons.filter(person =>
-    person.name.toLowerCase().includes(filter.toLowerCase())
+  const matches = countries.filter(country =>
+    country.name.common
+      .toLowerCase()
+      .includes(search.toLowerCase())
   )
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <label>
+        find countries{' '}
+        <input
+          value={search}
+          onChange={handleSearchChange}
+        />
+      </label>
 
-      <Notification
-        message={message}
-        isError={isError}
-      />
+      {search !== '' && matches.length > 10 && (
+        <p>
+          Too many matches, specify another filter
+        </p>
+      )}
 
-      <Filter
-        filter={filter}
-        handleFilterChange={handleFilterChange}
-      />
+      {search !== '' &&
+        matches.length > 1 &&
+        matches.length <= 10 && (
+          <div>
+            {matches.map(country => (
+              <p key={country.name.common}>
+                {country.name.common}
+              </p>
+            ))}
+          </div>
+        )}
 
-      <h3>Add a new</h3>
+      {search !== '' && matches.length === 1 && (
+        <div>
+          <h1>{matches[0].name.common}</h1>
 
-      <PersonForm
-        addPerson={addPerson}
-        newName={newName}
-        handleNameChange={handleNameChange}
-        newNumber={newNumber}
-        handleNumberChange={handleNumberChange}
-      />
+          <p>
+            Capital: {matches[0].capital?.[0]}
+          </p>
 
-      <h3>Numbers</h3>
+          <p>
+            Area: {matches[0].area}
+          </p>
 
-      <Persons
-        persons={personsToShow}
-        deletePerson={deletePerson}
-      />
+          <h2>Languages</h2>
+
+          <ul>
+            {Object.values(
+              matches[0].languages || {}
+            ).map(language => (
+              <li key={language}>
+                {language}
+              </li>
+            ))}
+          </ul>
+
+          <img
+            src={matches[0].flags.png}
+            alt={`Flag of ${matches[0].name.common}`}
+            width="200"
+          />
+        </div>
+      )}
     </div>
   )
 }
