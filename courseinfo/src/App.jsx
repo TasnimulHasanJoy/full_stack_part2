@@ -4,6 +4,7 @@ import countryService from './services/countries'
 const App = () => {
   const [countries, setCountries] = useState([])
   const [search, setSearch] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState(null)
 
   useEffect(() => {
     countryService
@@ -15,6 +16,7 @@ const App = () => {
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value)
+    setSelectedCountry(null)
   }
 
   const matches = countries.filter(country =>
@@ -22,6 +24,10 @@ const App = () => {
       .toLowerCase()
       .includes(search.toLowerCase())
   )
+
+  const countryToShow =
+    selectedCountry ||
+    (matches.length === 1 ? matches[0] : null)
 
   return (
     <div>
@@ -44,30 +50,38 @@ const App = () => {
         matches.length <= 10 && (
           <div>
             {matches.map(country => (
-              <p key={country.name.common}>
-                {country.name.common}
-              </p>
+              <div key={country.name.common}>
+                {country.name.common}{' '}
+                <button
+                  onClick={() =>
+                    setSelectedCountry(country)
+                  }
+                >
+                  Show
+                </button>
+              </div>
             ))}
           </div>
         )}
 
-      {search !== '' && matches.length === 1 && (
+      {countryToShow && (
         <div>
-          <h1>{matches[0].name.common}</h1>
+          <h1>{countryToShow.name.common}</h1>
 
           <p>
-            Capital: {matches[0].capital?.[0]}
+            Capital:{' '}
+            {countryToShow.capital?.[0]}
           </p>
 
           <p>
-            Area: {matches[0].area}
+            Area: {countryToShow.area}
           </p>
 
           <h2>Languages</h2>
 
           <ul>
             {Object.values(
-              matches[0].languages || {}
+              countryToShow.languages || {}
             ).map(language => (
               <li key={language}>
                 {language}
@@ -76,8 +90,8 @@ const App = () => {
           </ul>
 
           <img
-            src={matches[0].flags.png}
-            alt={`Flag of ${matches[0].name.common}`}
+            src={countryToShow.flags.png}
+            alt={`Flag of ${countryToShow.name.common}`}
             width="200"
           />
         </div>
