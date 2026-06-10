@@ -24,11 +24,6 @@
       "name": "Joy Sikdar",
       "number": "",
       "id": "MbxUI8Sfrmk"
-    },
-    {
-      "name": "Aminul",
-      "number": "",
-      "id": "2OBnwd2DuUw"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

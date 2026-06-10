@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons'
 
-const Notification = ({ message }) => {
+const Notification = ({ message, isError }) => {
   if (message === null) {
     return null
   }
@@ -9,8 +9,8 @@ const Notification = ({ message }) => {
   return (
     <div
       style={{
-        color: 'green',
-        border: '2px solid green',
+        color: isError ? 'red' : 'green',
+        border: `2px solid ${isError ? 'red' : 'green'}`,
         padding: '10px',
         marginBottom: '10px'
       }}
@@ -24,7 +24,10 @@ const Filter = ({ filter, handleFilterChange }) => {
   return (
     <div>
       filter shown with
-      <input value={filter} onChange={handleFilterChange} />
+      <input
+        value={filter}
+        onChange={handleFilterChange}
+      />
     </div>
   )
 }
@@ -40,12 +43,18 @@ const PersonForm = ({
     <form onSubmit={addPerson}>
       <div>
         name:
-        <input value={newName} onChange={handleNameChange} />
+        <input
+          value={newName}
+          onChange={handleNameChange}
+        />
       </div>
 
       <div>
         number:
-        <input value={newNumber} onChange={handleNumberChange} />
+        <input
+          value={newNumber}
+          onChange={handleNumberChange}
+        />
       </div>
 
       <div>
@@ -60,10 +69,11 @@ const Persons = ({ persons, deletePerson }) => {
     <>
       {persons.map(person => (
         <p key={person.id}>
-          {person.name} {person.number}
+          {person.name} {person.number}{' '}
           <button
-            onClick={() => deletePerson(person.id, person.name)}
-            style={{ marginLeft: '5px' }}
+            onClick={() =>
+              deletePerson(person.id, person.name)
+            }
           >
             delete
           </button>
@@ -79,14 +89,17 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
   const [message, setMessage] = useState(null)
+  const [isError, setIsError] = useState(false)
 
   useEffect(() => {
-    personService.getAll().then(response => {
-      setPersons(response.data)
-    })
+    personService
+      .getAll()
+      .then(response => {
+        setPersons(response.data)
+      })
   }, [])
 
-  const addPerson = event => {
+  const addPerson = (event) => {
     event.preventDefault()
 
     const existingPerson = persons.find(
@@ -115,6 +128,7 @@ const App = () => {
               )
             )
 
+            setIsError(false)
             setMessage(`Updated ${response.data.name}`)
 
             setTimeout(() => {
@@ -123,6 +137,22 @@ const App = () => {
 
             setNewName('')
             setNewNumber('')
+          })
+          .catch(() => {
+            setIsError(true)
+            setMessage(
+              `Information of ${existingPerson.name} has already been removed from server`
+            )
+
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
+
+            setPersons(
+              persons.filter(
+                person => person.id !== existingPerson.id
+              )
+            )
           })
       }
 
@@ -134,39 +164,44 @@ const App = () => {
       number: newNumber
     }
 
-    personService.create(personObject).then(response => {
-      setPersons(persons.concat(response.data))
+    personService
+      .create(personObject)
+      .then(response => {
+        setPersons(persons.concat(response.data))
 
-      setMessage(`Added ${response.data.name}`)
+        setIsError(false)
+        setMessage(`Added ${response.data.name}`)
 
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000)
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
 
-      setNewName('')
-      setNewNumber('')
-    })
+        setNewName('')
+        setNewNumber('')
+      })
   }
 
   const deletePerson = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
-      personService.remove(id).then(() => {
-        setPersons(
-          persons.filter(person => person.id !== id)
-        )
-      })
+      personService
+        .remove(id)
+        .then(() => {
+          setPersons(
+            persons.filter(person => person.id !== id)
+          )
+        })
     }
   }
 
-  const handleNameChange = event => {
+  const handleNameChange = (event) => {
     setNewName(event.target.value)
   }
 
-  const handleNumberChange = event => {
+  const handleNumberChange = (event) => {
     setNewNumber(event.target.value)
   }
 
-  const handleFilterChange = event => {
+  const handleFilterChange = (event) => {
     setFilter(event.target.value)
   }
 
@@ -178,7 +213,10 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
-      <Notification message={message} />
+      <Notification
+        message={message}
+        isError={isError}
+      />
 
       <Filter
         filter={filter}
